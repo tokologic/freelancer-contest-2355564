@@ -15,8 +15,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# import project.restful.schema_extensions  # noqa
-
 load_dotenv()
 
 
@@ -50,8 +48,6 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "drf_spectacular",
     "drf_spectacular_sidecar",
-    "project.restful",
-    "project.vehicle",
     "project.scraper",
 ]
 
@@ -149,16 +145,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Django REST framework (DRF)
 REST_FRAMEWORK = {
     "AUTH_HEADER_TYPES": ["Bearer"],
-    "DEFAULT_AUTHENTICATION_CLASSES": ["project.restful.authentication.JWTAuthentication"],
-    "DEFAULT_PAGINATION_CLASS": "project.restful.pagination.ApiPageNumberPagination",
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
-    "DEFAULT_RENDERER_CLASSES": [
-        # 'rest_framework.renderers.JSONRenderer',  # Only JSON renderer
-        "project.restful.renderers.ApiRenderer",  # Only JSON renderer
-        # 'rest_framework.renderers.BrowsableAPIRenderer',  # Remove this for production
-    ],
-    "DEFAULT_SCHEMA_CLASS": "project.restful.openapi.ProjectAutoSchema",
-    "EXCEPTION_HANDLER": "project.restful.views.api_exception_handler",
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
 
@@ -170,28 +157,5 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SECURITY": [
         {"JWTAuthentication": []},  # Name must match your extension's `name`
-    ],
-    "TAGS": [
-        {
-            "name": "vehicles",
-            "description": (
-                "The vehicles tag groups together all endpoints related to vehicle management "
-                "within the system. These endpoints provide functionality for listing all vehicles, "
-                "retrieving details of a specific vehicle, creating new vehicle entries, "
-                "updating existing records, and deleting vehicles. Each endpoint ensures proper "
-                "validation and follows RESTful standards to maintain data consistency and reliability."
-            ),
-        },
-        {
-            "name": "auth",
-            "description": (
-                "The auth tag groups together endpoints related to user authentication and account "
-                "management. It currently includes functionality for user registration and login. "
-                "These endpoints form the core of the authentication flow, enabling new users "
-                "to create accounts and existing users to securely authenticate using their credentials. "
-                "These endpoints are essential for securing access to user-specific features "
-                "and data within the application."
-            ),
-        },
     ],
 }

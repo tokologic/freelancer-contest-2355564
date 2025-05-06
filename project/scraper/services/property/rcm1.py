@@ -1,4 +1,5 @@
 import math
+import re
 from typing import List
 
 import requests
@@ -14,6 +15,10 @@ class Rcm1MarketplaceScraper:
 
         self.total = 0
         self.per_page = per_page
+        self.stdout = None
+
+    def set_stdout(self, stdout):
+        self.stdout = stdout
 
     def handle(self):
         response = self.page(1)
@@ -29,6 +34,7 @@ class Rcm1MarketplaceScraper:
             self.page(start)
 
     def page(self, start: int = 1) -> dict:
+        self.stdout.write(f"Fetching item {start} and further...")
         url = f"{self.url}?pv={self.token}"
 
         response = requests.post(
@@ -58,15 +64,19 @@ class Rcm1MarketplaceScraper:
 
         finder = Finder(self.sanitize(html))
         for property in finder.properties():
+            self.stdout.write(f"Found: {property.name}")
             AssetProperty.objects.create(
                 name=property.name,
                 cover_image_url=property.cover_image_url,
                 price=property.price,
                 city=property.city,
                 kind=property.kind,
+                size=property.size,
+                status=property.status,
                 contact_name=property.contact_name,
                 company=property.company,
                 summary=property.summary,
+                source="https://www.rcm1.com/marketplace/",
             )
 
 
@@ -77,59 +87,125 @@ class PropertyFinder:
         self.__image_card__ = self.property.select("div.rcm_img_section")[0]
         self.__caption_card__ = self.property.select("div.rcm_card_caption")[0]
 
+    def first_if_exists(self, selector):
+        if len(selector) == 0:
+            return None
+        return selector[0]
+
     @property
     def name(self) -> str:
-        return self.__caption_card__.select("div.headline")[0].text
+        headline_selector = self.__caption_card__.select("div.headline")
+        result = self.first_if_exists(headline_selector)
+        if result:
+            return result.text
+        return None
 
     @property
     def cover_image_url(self) -> str:
-        image = self.__image_card__.select("img")[0]
-        return image.get("src")
+        image_selector = self.__image_card__.select("img")
+        result = self.first_if_exists(image_selector)
+        if result:
+            return result.get("src")
+        return None
+
+    def _parse_currency_(self, value):
+        raw = re.sub(r"[^\d.,-]", "", value)
+
+        # Heuristic: if comma is used as decimal, it's likely EU format
+        if raw.count(",") == 1 and raw.count(".") > 1:
+            # Example: 1.234.567,89 → 1234567.89
+            raw = raw.replace(".", "").replace(",", ".")
+        elif raw.count(",") > 1 and raw.count(".") == 0:
+            # Example: 1,234,567 → US-style commas, remove them
+            raw = raw.replace(",", "")
+        elif raw.count(",") == 1 and raw.count(".") == 0:
+            # Could be 1,50 (EU format for 1.50)
+            raw = raw.replace(",", ".")
+
+        try:
+            return float(raw)
+        except ValueError:
+            return None  # or raise Exception("Invalid currency format")
 
     @property
     def price(self) -> float:
         price_selector = self.__image_card__.select("div.price")
-        if len(price_selector) == 0:
-            return None
+        result = self.first_if_exists(price_selector)
+        if not result:
+            return
 
-        price = price_selector[0].text
-        return price
+        return self._parse_currency_(result.text)
 
     @property
     def city(self) -> str:
-        return self.__caption_card__.select("div.city")[0].text
+        city_selector = self.__caption_card__.select("div.city")
+        result = self.first_if_exists(city_selector)
+        if not result:
+            return
+        return result.text
 
     @property
     def kind(self) -> str:
-        return ""
+        selector = self.__caption_card__.select(
+            ".features > .feature-label > .feature-value.asset-type"
+        )
+        result = self.first_if_exists(selector)
+        if result:
+            return result.text
+        return None
 
     @property
     def size(self) -> str:
-        return ""
+        selector = self.__caption_card__.select(
+            ".features > .feature-label > .feature-value.asset-units"
+        )
+        result = self.first_if_exists(selector)
+        if result:
+            return result.text
+
+        selector = self.__caption_card__.select(
+            ".features > .feature-label > .feature-value.asset-sqft"
+        )
+        result = self.first_if_exists(selector)
+        if result:
+            return result.text
+
+        return None
 
     @property
     def status(self) -> str:
-        return ""
+        selector = self.__caption_card__.select(
+            ".features > .feature-label > .feature-value.asset-status"
+        )
+        result = self.first_if_exists(selector)
+        if result:
+            return result.text
+        return None
 
     @property
     def summary(self) -> str:
-        detail = self.__caption_card__.select("div.more-details")[0]
-        summary_selector = detail.select("div.summary")
-        if len(summary_selector) == 0:
+        summary_selector = self.__caption_card__.select("div.more-details > .summary")
+        summary = self.first_if_exists(summary_selector)
+        if not summary:
             return None
 
-        summary = summary_selector[0].text
-        return summary
+        return summary.text
 
     @property
     def contact_name(self) -> str:
-        detail = self.__caption_card__.select("div.more-details")[0]
-        return detail.select(".contact > .name")[0].text
+        selector = self.__caption_card__.select("div.more-details .contact > .name")
+        result = self.first_if_exists(selector)
+        if not result:
+            return None
+        return result.text
 
     @property
     def company(self) -> str:
-        detail = self.__caption_card__.select("div.more-details")[0]
-        return detail.select(".contact > .company")[0].text
+        selector = self.__caption_card__.select("div.more-details .contact > .company")
+        result = self.first_if_exists(selector)
+        if not result:
+            return None
+        return result.text
 
 
 class Finder:

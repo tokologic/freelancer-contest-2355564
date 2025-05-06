@@ -16,25 +16,8 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import include, path
-from rest_framework import routers
-
-from project.restful.views import (
-    AuthenticationViewSet,
-    PublicRedocView,
-    PublicSchemaView,
-    PublicSwaggerView,
-)
-from project.vehicle.views import VehicleViewSet
-
-apiRouter = routers.DefaultRouter()
-apiRouter.register(r"vehicles", VehicleViewSet)
-apiRouter.register("auth", AuthenticationViewSet, basename="auth")
+from django.urls import path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("_docs_/_schema_/", PublicSchemaView.as_view(), name="schema"),
-    path("_docs_/_api_documentation_/", PublicRedocView.as_view(), name="redoc_schema"),
-    path("_docs_/_try_it_/", PublicSwaggerView.as_view(), name="swagger_schema"),
-    path("", include(apiRouter.urls)),
 ]
