@@ -1,5 +1,3 @@
-import requests
-
 from django.core.management.base import BaseCommand
 
 from project.scraper.services.property.rcm1 import Rcm1MarketplaceScraper
@@ -9,7 +7,7 @@ class Command(BaseCommand):
     help = "Scrape info from property websites."
 
     # def add_arguments(self, parser):
-        # parser.add_argument('sample', nargs='+')
+    # parser.add_argument('sample', nargs='+')
 
     def handle(self, *args, **options):
         scraper = Rcm1MarketplaceScraper(token="SFh_vpTV6FE6kPQ3K5oDjDISfZcVJLJtiFcKcbENqhk")
@@ -62,7 +60,6 @@ class Command(BaseCommand):
         #     price = image_card.select("div.price")
         #     if len(price) > 0:
         #         price_string = price[0].text
-            
 
         #     caption_card = property.select("div.rcm_card_caption")[0]
         #     title = caption_card.select("div.headline")[0].text
@@ -93,7 +90,6 @@ class Command(BaseCommand):
         #     contact_name = details.select(".contact > .name")[0].text
         #     contact_company = details.select(".contact > .company")[0].text
 
-
         #     print({
         #         "title": title,
         #         "image_link": image_link,
@@ -111,5 +107,3 @@ class Command(BaseCommand):
         #     #     print(property)
 
         #     i += 1
-
-
