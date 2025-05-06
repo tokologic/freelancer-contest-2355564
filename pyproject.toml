@@ -1,5 +1,5 @@
 [project]
-name = "python-api"
+name = "scraper-2355564"
 version = "0.1.0"
 description = ""
 authors = [
@@ -18,6 +18,8 @@ dependencies = [
     "djangorestframework-simplejwt (>=5.5.0,<6.0.0)",
     "random-english-word-generator (>=1.0.1,<2.0.0)",
     "drf-spectacular[sidecar] (>=0.28.0,<0.29.0)",
+    "beautifulsoup4 (>=4.13.4,<5.0.0)",
+    "requests (>=2.32.3,<3.0.0)",
 ]
 
 

@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "drf_spectacular_sidecar",
     "project.restful",
     "project.vehicle",
+    "project.scraper",
 ]
 
 MIDDLEWARE = [
