@@ -53,7 +53,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
 
-      # - name: Notify to Slack
-      #   run: |
-      #     echo "Slack: New tag created, please release it soon."
-      #     echo "${{ steps.create_tag.outputs.cz_bump }}"
+      - name: Notify to Slack
+        run: |
+          echo "Slack: New tag created, please release it soon."
