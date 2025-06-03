@@ -23,6 +23,13 @@ jobs:
           fetch-depth: 0              # fetch all history so we can push tags
           token: ${{ secrets.PAT }}
 
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.FC_BOT_APP_ID }}
+          private-key: ${{ secrets.FC_BOT_APP_PRIVATE_KEY }}
+
       - name: Git config
         run: |
           git config user.name "github-actions[bot]"
@@ -51,7 +58,7 @@ jobs:
           git push origin
           git push origin --tags
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Notify to Slack
         run: |
