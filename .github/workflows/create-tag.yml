@@ -1,0 +1,59 @@
+# This workflow creates a new tag and GitHub release when triggered manually.
+# It uses the commitizen tool to generate the tag based on conventional commits,
+# ensuring consistent versioning. The release happens on a specific branch,
+# like release/yyyymmdd.i, and gives a versioned snapshot of the code for that release.
+
+name: Create release tag
+
+on:
+  workflow_dispatch:  # Manual trigger from GitHub Actions UI
+
+permissions:
+  contents: write  # Required to push tags back to the repo
+
+jobs:
+  bump-version:
+    name: Generate version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0              # fetch all history so we can push tags
+          token: ${{ secrets.PAT }}
+
+      - name: Git config
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Commitizen
+        run: |
+          python -m pip install pipx
+          pipx ensurepath
+          pipx install commitizen
+          pipx upgrade commitizen
+
+      - name: Bump version and create tag
+        id: create_tag
+        run: |
+          cz bump --yes --allow-no-commit
+          git log -n 5
+
+      - name: Push new tag to repository
+        run: |
+          git push origin
+          git push origin --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+
+      # - name: Notify to Slack
+      #   run: |
+      #     echo "Slack: New tag created, please release it soon."
+      #     echo "${{ steps.create_tag.outputs.cz_bump }}"

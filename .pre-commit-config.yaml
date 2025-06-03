@@ -29,3 +29,11 @@ repos:
     hooks:
       - id: isort
         args: ["--settings-file", "./pyproject.toml"]
+
+  - hooks:
+      - id: commitizen
+    repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.7.0
+
+default_stages:
+  - pre-commit
